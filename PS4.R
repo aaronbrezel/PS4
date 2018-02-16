@@ -4,4 +4,4 @@ myFunction <- function (doorthing, doorthing2, x) {
   x
 }
 
-myFunction(sample(1:3, 1), sample(1:3,1)))
+myFunction(sample(1:3, 1), sample(1:3,1))
