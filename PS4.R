@@ -31,7 +31,8 @@ setClass(Class="door", representation = representation(chosenDoor = "integer", c
 
 #this will already throw an error when creating a new object. Why do we need  to set a validity to show that the slots are appropriately structured  
 
-#Is there a way to prevent the user from setting the value in "winner"
+#Is there a way to prevent the user from setting the value in "winner"?
+#What about setting the standard value of carDoor and chosenDoor to null first? Because right now my Monty Method simply replaces the value
 
 setValidity("door", function(object){
   # if(!is.integer(object@chosenDoor)){
@@ -45,6 +46,9 @@ setValidity("door", function(object){
   # }
   # else if(!is.logical(object@winner)){
   #   return("switch must be type 'logical'")
+  # }
+  # if(is.null(object@chosenDoor)){
+  #   return()
   # }
   if(object@chosenDoor < 1 | object@chosenDoor > 3){
     return("Chosen door must be between 1 and 3")
@@ -64,21 +68,53 @@ setMethod("initialize", "door", function(.Object, ...){
   return(value)
 })
 
-game <- new("door", chosenDoor = as.integer(1), carDoor = as.integer(sample(1:3,1)), switch = TRUE)
 
 setGeneric("PlayGame", function(object){standardGeneric("PlayGame")})
 
 setMethod("PlayGame", "door", function(object){
-  unselectedDoor <- c(1,2,3)
-  chosenDoor<- sample(1:3, 1)
+  doorList <- c(1,2,3)
+  revealedDoor <- c(1,2,3)
+  object@chosenDoor<- sample(1:3, 1)
   object@carDoor <- sample(1:3,1)
-  unselectedDoor <- unselectedDoor[-c(object@chosenDoor, object@carDoor)]
-  if(identical(object@switch, TRUE)){
-    object@
-  }
   
+  revealedDoor <- revealedDoor[-c(object@chosenDoor, object@carDoor)] #"revealed door" if the contestant picks a door with a goat behind it, this line "reveals" the other door with the goat behind it. If the contestant picks the door with the car behind it, the "if" statement below chooses randomly to "reveal" one of the two doors with a goat behind it. 
+  if(length(revealedDoor) == 2){
+    revealedDoor <- sample(revealedDoor,1)
+  }
+  print(paste("Chosen Door:", object@chosenDoor, "Car Door:", object@carDoor, "Revealed door:", revealedDoor, sep = " "))
+  
+  if(identical(object@switch, TRUE)){
+    print("Door Switched!")
+    object@chosenDoor <- as.integer(doorList[-c(object@chosenDoor,revealedDoor)])
+    print(paste("Chosen Door:", object@chosenDoor, "Car Door:", object@carDoor, "Revealed door:", revealedDoor, sep = " "))
+    if(identical(object@chosenDoor, object@carDoor)){
+      print("You won! Enjoy your brand new car!")
+      object@winner <- TRUE
+      return(object)
+    } 
+    else{
+      print("You lost! Enjoy your goat!")  
+      object@winner <- FALSE
+      return(object)
+    }
+  }
+  else{
+    if(identical(object@chosenDoor, object@carDoor)){
+      print("You won! Enjoy your brand new car!")
+      object@winner <- TRUE
+      return(object)
+    } 
+    else{
+      print("Door did not Switch!")
+      print("You lost! Enjoy your goat!")  
+      object@winner <- FALSE
+      return(object)
+    }
+  }
 })
 
+game <- new("door", chosenDoor = as.integer(sample(1:3,1)), carDoor = as.integer(sample(1:3,1)), switch = FALSE)
 
-
-
+#is this acceptable? Also, I tried having Playgame simply return "4" and it did set game to "4" how can i prevent the method from doing that?
+game <- PlayGame(game)
+game
