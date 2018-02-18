@@ -27,14 +27,14 @@ myFunction(sample(1:3, 1), sample(1:3,1))
 
 #1.
 
-setClass(Class="door", representation = representation(chosenDoor = "integer", carDoor = "integer", switch = "logical", winner = "logical"), prototype = prototype(chosenDoor = c(), carDoor = c(), switch = c(), winner = NA))
+setClass(Class="door", representation = representation(chosenDoor = "integer", carDoor = "integer", switch = "logical", winner = "logical"), prototype = prototype(chosenDoor = c(), carDoor = c(), switch = c(), winner = NA)) #Standard S4 set class method
 
 #this will already throw an error when creating a new object. Why do we need  to set a validity to show that the slots are appropriately structured  
 
 #Is there a way to prevent the user from setting the value in "winner"?
 #What about setting the standard value of carDoor and chosenDoor to null first? Because right now my Monty Method simply replaces the value
 
-setValidity("door", function(object){
+setValidity("door", function(object){ #Validity function
   # if(!is.integer(object@chosenDoor)){
   #   return("Chosen Door must be type 'integer'")
   # }
@@ -62,32 +62,32 @@ setValidity("door", function(object){
 })
 
 
-setMethod("initialize", "door", function(.Object, ...){
+setMethod("initialize", "door", function(.Object, ...){ #Initialize function
   value = callNextMethod()
   validObject(value)
   return(value)
 })
 
 
-setGeneric("PlayGame", function(object){standardGeneric("PlayGame")})
+setGeneric("PlayGame", function(object){standardGeneric("PlayGame")}) #Setting generic function for later door-specific method
 
-setMethod("PlayGame", "door", function(object){
-  doorList <- c(1,2,3)
+setMethod("PlayGame", "door", function(object){ #door-specific method for Playgame function
+  doorList <- c(1,2,3) 
   revealedDoor <- c(1,2,3)
   object@chosenDoor<- sample(1:3, 1)
   object@carDoor <- sample(1:3,1)
   
   revealedDoor <- revealedDoor[-c(object@chosenDoor, object@carDoor)] #"revealed door" if the contestant picks a door with a goat behind it, this line "reveals" the other door with the goat behind it. If the contestant picks the door with the car behind it, the "if" statement below chooses randomly to "reveal" one of the two doors with a goat behind it. 
-  if(length(revealedDoor) == 2){
+  if(length(revealedDoor) == 2){ 
     revealedDoor <- sample(revealedDoor,1)
   }
   print(paste("Chosen Door:", object@chosenDoor, "Car Door:", object@carDoor, "Revealed door:", revealedDoor, sep = " "))
   
-  if(identical(object@switch, TRUE)){
+  if(identical(object@switch, TRUE)){ #If the contestant will switch
     print("Door Switched!")
-    object@chosenDoor <- as.integer(doorList[-c(object@chosenDoor,revealedDoor)])
+    object@chosenDoor <- as.integer(doorList[-c(object@chosenDoor,revealedDoor)]) #select the one door left that has not been chosen or revealed
     print(paste("Chosen Door:", object@chosenDoor, "Car Door:", object@carDoor, "Revealed door:", revealedDoor, sep = " "))
-    if(identical(object@chosenDoor, object@carDoor)){
+    if(identical(object@chosenDoor, object@carDoor)){ #checks to see if the newly selected door is the same as the car door
       print("You won! Enjoy your brand new car!")
       object@winner <- TRUE
       return(object)
@@ -114,7 +114,36 @@ setMethod("PlayGame", "door", function(object){
 })
 
 game <- new("door", chosenDoor = as.integer(sample(1:3,1)), carDoor = as.integer(sample(1:3,1)), switch = FALSE)
-
 #is this acceptable? Also, I tried having Playgame simply return "4" and it did set game to "4" how can i prevent the method from doing that?
 game <- PlayGame(game)
-game
+
+#Simulations
+
+#If the user switches
+game <- new("door", chosenDoor = as.integer(sample(1:3,1)), carDoor = as.integer(sample(1:3,1)), switch = TRUE)
+counter <- 0
+for(i in 1:1000){
+  game <- PlayGame(game)
+  if(identical(game@winner,TRUE)){ #If the contestant one, add a tally to the counter
+    counter <- counter + 1
+  }
+}
+successRate <- (counter/1000)*100 #number of wins out of 1,000 iterations. Displayed as a percent
+successRate
+#65.6% success rate
+
+#If the contestant does not switch
+game <- new("door", chosenDoor = as.integer(sample(1:3,1)), carDoor = as.integer(sample(1:3,1)), switch = FALSE)
+counter <- 0
+for(i in 1:1000){
+  game <- PlayGame(game)
+  if(identical(game@winner,TRUE)){ #If the contestant one, add a tally to the counter
+    counter <- counter + 1
+  }
+}
+successRate <- (counter/1000)*100 #number of wins out of 1,000 iterations. Displayed as a percent
+successRate
+#35.5% success rate
+
+#Switching doors is nearly twice as successful as sticking with the same door
+
