@@ -35,21 +35,6 @@ setClass(Class="door", representation = representation(chosenDoor = "integer", c
 #What about setting the standard value of carDoor and chosenDoor to null first? Because right now my Monty Method simply replaces the value
 
 setValidity("door", function(object){ #Validity function
-  # if(!is.integer(object@chosenDoor)){
-  #   return("Chosen Door must be type 'integer'")
-  # }
-  # else if(!is.integer(object@carDoor)){
-  #   return("ChosenDoor must be type 'integer'")
-  # }
-  # else if(!is.logical(object@switch)){
-  #   return("switch must be type 'logical'")
-  # }
-  # else if(!is.logical(object@winner)){
-  #   return("switch must be type 'logical'")
-  # }
-  # if(is.null(object@chosenDoor)){
-  #   return()
-  # }
   if(object@chosenDoor < 1 | object@chosenDoor > 3){
     return("Chosen door must be between 1 and 3")
   }
@@ -70,6 +55,7 @@ setMethod("initialize", "door", function(.Object, ...){ #Initialize function
 
 
 setGeneric("PlayGame", function(object){standardGeneric("PlayGame")}) #Setting generic function for later door-specific method
+
 
 setMethod("PlayGame", "door", function(object){ #door-specific method for Playgame function
   doorList <- c(1,2,3) 
@@ -121,29 +107,31 @@ game <- PlayGame(game)
 
 #If the user switches
 game <- new("door", chosenDoor = as.integer(sample(1:3,1)), carDoor = as.integer(sample(1:3,1)), switch = TRUE)
-counter <- 0
-for(i in 1:1000){
-  game <- PlayGame(game)
-  if(identical(game@winner,TRUE)){ #If the contestant one, add a tally to the counter
+gameList <- replicate(1000, PlayGame(game)) #reruns the PlayGame function 1000 times. Produces a list
+results <- sapply(gameList, function(x){ #creates a vector of true and false values to indicate winners and losers 
+  if (x@winner == TRUE){
     counter <- counter + 1
+    return(TRUE)
   }
-}
-successRate <- (counter/1000)*100 #number of wins out of 1,000 iterations. Displayed as a percent
-successRate
-#65.6% success rate
+  return(FALSE)
+})
+(length(results[results==TRUE])/1000)*100
+#64.7% success rate
 
 #If the contestant does not switch
 game <- new("door", chosenDoor = as.integer(sample(1:3,1)), carDoor = as.integer(sample(1:3,1)), switch = FALSE)
-counter <- 0
-for(i in 1:1000){
-  game <- PlayGame(game)
-  if(identical(game@winner,TRUE)){ #If the contestant one, add a tally to the counter
+gameList <- replicate(1000, PlayGame(game)) #reruns the PlayGame function 1000 times. Produces a list
+results <- sapply(gameList, function(x){ #creates a vector of true and false values to indicate winners and losers 
+  if (x@winner == TRUE){
     counter <- counter + 1
+    return(TRUE)
   }
-}
-successRate <- (counter/1000)*100 #number of wins out of 1,000 iterations. Displayed as a percent
-successRate
-#35.5% success rate
+  return(FALSE)
+})
+(length(results[results==TRUE])/1000)*100 #Calculates the number of winners via the number of true values 
+#34.5% of the time, contestants won while switching
 
 #Switching doors is nearly twice as successful as sticking with the same door
 
+game@chosenDoor <- as.integer(10)
+game
